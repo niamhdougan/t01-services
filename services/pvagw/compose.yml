@@ -1,0 +1,59 @@
+#  Configure a pvagw so that the PVA plugin image stream can be accessed
+
+services:
+
+  # local pvagw for test/dev  ##################################################
+
+  pvagw: &pvagw
+    container_name: pvagw
+
+    image: ghcr.io/epics-containers/ec-p4p:4.1.12ec1
+
+    expose:
+      - 5076/udp
+      - 5075
+
+    ports:
+      # bind to localhost to isolate channel access to this host only
+      - 127.0.0.1:5076:5076/udp
+      - 127.0.0.1:5075:5075
+
+    restart: unless-stopped
+
+    networks:
+      - channel_access
+
+    configs:
+      - source: pvagw_config
+        target: /config
+
+    command: -c "pvagw /config/pvagw.config --debug"
+
+    profiles:
+    # PVAcess cannot set up channels into a container yet, so we are using
+    # ndstdarrys instead of ndpva for now
+    # https://github.com/epics-base/pvAccessCPP/issues/197
+      - removed
+
+  # per server pvagw for deployment #############################################
+  pvagw-deploy:
+
+    <<: *pvagw
+
+    ports:
+    # TODO investigate how to configure this for deployment
+    - 127.0.0.1:5076:5076/udp
+    - 127.0.0.1:5075:5075
+
+    command: -c "pvagw /config/pvagw.config"
+
+    profiles:
+      - removed
+
+configs:
+  pvagw_config:
+    file: ./config
+
+include:
+  - path:
+      ../../include/networks.yml

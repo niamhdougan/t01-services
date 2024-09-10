@@ -1,0 +1,11 @@
+**/*.tz
+**/*.tgz
+.history
+venv*
+.venv*
+*workspace
+
+# this is the root directory for generated opi files
+# and is created at runtime by IOCs using PVI
+opi/auto-generated/*
+!opi/auto-generated/README.md
