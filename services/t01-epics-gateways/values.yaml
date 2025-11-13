@@ -1,0 +1,3 @@
+epics-gateways:
+  # switch to developer image for debugging
+  image: ghcr.io/epics-containers/epics-gateways-developer:2025.7.4

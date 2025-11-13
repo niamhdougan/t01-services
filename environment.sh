@@ -1,45 +1,45 @@
-#! /bin/bash
+#!/bin/bash
 
-# Setup environment variables required to launch the services described in this
-# repo. A standard install of docker compose and permission to run docker
-# are the only other requirements (membership of the docker group).
-#
-# docker compose may be backed by podman or docker container engines, see
-# https://epics-containers.github.io/main/tutorials/setup_workstation.html.
+# a bash script to source in order to set up your command line to in order
+# to work with the t01 IOCs and Services.
 
-# This script must be sourced
+# check we are sourced
 if [ "$0" = "$BASH_SOURCE" ]; then
-    echo "ERROR: Please source this script (source ./environment.sh)"
+    echo "ERROR: Please source this script"
     exit 1
 fi
 
-# if there is a docker-compose module then load it
-if [[ $(module avail docker-compose 2>/dev/null) != "" ]] ; then
-    module load docker-compose
+echo "Loading environment for t01 IOC Instances and Services ..."
+
+#### SECTION 1. Environment variables ##########################################
+
+export EC_CLI_BACKEND="K8S"
+# the namespace to use for kubernetes deployments
+export EC_TARGET=sfx44126
+# the git repo for this project
+export EC_SERVICES_REPO=
+# declare your centralised log server Web UI
+export EC_LOG_URL="https://graylog2.diamond.ac.uk/search?rangetype=relative&fields=message%2Csource&width=1489&highlightMessage=&relative=172800&q=pod_name%3A{service_name}*"
+
+#### SECTION 2. Install ec #####################################################
+
+# check if epics-containers-cli (ec command) is installed
+if ! ec --version &> /dev/null; then
+    echo "ERROR: Please set up a virtual environment and: 'pip install edge-containers-cli'"
+    return 1
 fi
 
-# podman vs docker differences.
-if podman version &> /dev/null && [[ -z $USE_DOCKER ]] ; then
-    USER_ID=0; USER_GID=0
-    DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
-    docker=podman
-else
-    USER_ID=$(id -u); USER_GID=$(id -g)
-    unset DOCKER_HOST
-    docker=docker
-fi
-echo using $docker as container engine
+# enable shell completion for ec commands
+source <(ec --show-completion ${SHELL})
 
-# ensure local container users can access X11 server
-xhost +SI:localuser:$(id -un)
 
-# Set up the environment for compose ###########################################
+#### SECTION 3. Configure Kubernetes Cluster ###################################
 
-# set user id for the phoebus container for easy X11 forwarding.
-export UIDGID=$USER_ID:$USER_GID
-# default to the test profile for docker compose
-export COMPOSE_PROFILES=test
-# for test profile our ca-gateway publishes PVS on the loopback interface
-export EPICS_CA_ADDR_LIST=127.0.0.1
-# make a short alias for docker-compose for convenience
-alias dc="$docker compose"
+
+# TODO add commands here to enable kubectl to connect to the cluster
+
+
+# enable shell completion for k8s tools
+if [ -n "$ZSH_VERSION" ]; then SHELL=zsh; fi
+source <(helm completion $(basename ${SHELL}))
+source <(kubectl completion $(basename ${SHELL}))

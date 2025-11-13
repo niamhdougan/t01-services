@@ -1,5 +1,12 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: 4.1.3
-_src_path: gh:epics-containers/services-template-compose
+_commit: 5.1.0
+_src_path: https://github.com/epics-containers/services-template-helm.git
+athena_services: []
+cluster_name: argus
+cluster_namespace: sfx44126
 description: t01 IOC Instances and Services
-services: t01
+domain: t01
+gateway: true
+git_platform: github.com
+location: bl01t
+logging_url: https://graylog2.diamond.ac.uk/search?rangetype=relative&fields=message%2Csource&width=1489&highlightMessage=&relative=172800&q=pod_name%3A{service_name}*
